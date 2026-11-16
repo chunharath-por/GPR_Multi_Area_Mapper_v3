@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GPR Multi-Area Mapper · Editor</title>
+<style>
+:root{color-scheme:dark;--bg:#101720;--panel:#192330;--panel2:#202d3b;--stroke:#314354;--txt:#e9f1fa;--sub:#a8b9ca;--accent:#58a6ff;--green:#22bd82;--danger:#f07272}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}button,input{font:inherit}button{cursor:pointer;color:inherit;border:1px solid var(--stroke);background:var(--panel2);border-radius:9px;padding:9px 12px;white-space:nowrap}button:hover:not(:disabled){background:#2d4053}button:focus-visible,input:focus-visible{outline:2px solid #74b6ff;outline-offset:2px}button:disabled{opacity:.4;cursor:not-allowed}button.primary{background:#146abe;border-color:#2688e8}button.primary:hover:not(:disabled){background:#237ecc}button.green{background:#138a65;border-color:#1dab80}button.green:hover:not(:disabled){background:#19a77b}button.danger{color:#ffb5b5}button.active{background:#174d7c;border-color:#66b5ff;color:#fff}button.icon{padding:8px 10px}header{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--stroke);background:#17202c}header h1{font-size:16px;margin:0 18px 0 0;letter-spacing:.1px}.toolbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.sep{width:1px;height:28px;background:var(--stroke);margin:0 3px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 335px;height:calc(100vh - 78px);min-height:510px}.work{display:flex;flex-direction:column;min-width:0;overflow:hidden}.hints{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;color:var(--sub);font-size:12px;border-bottom:1px solid var(--stroke)}.board{position:relative;flex:1;min-height:220px;overflow:hidden;background:#101822;touch-action:none}.board canvas{display:block;width:100%;height:100%;touch-action:none}.empty{position:absolute;pointer-events:none;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--sub);border:1px dashed #45566a;padding:28px 34px;border-radius:16px;max-width:90%}.empty b{color:#eff7ff;font-size:16px}.bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--stroke);background:#15202b;color:var(--sub);font-size:12px}.sidebar{border-left:1px solid var(--stroke);background:var(--panel);display:flex;flex-direction:column;overflow-y:auto}.section{padding:15px;border-bottom:1px solid var(--stroke)}.section h2{font-size:14px;margin:0 0 9px}.section p{font-size:12px;color:var(--sub);margin:4px 0 12px}.row{display:flex;align-items:center;gap:8px}.row.spaced{justify-content:space-between}.row>button{flex-shrink:0}.grow{flex:1;min-width:0}.areas{display:flex;flex-direction:column;gap:6px;max-height:255px;overflow:auto}.area{display:flex;align-items:center;gap:7px;border:1px solid var(--stroke);border-radius:9px;background:#1d2b39;padding:6px}.area.selected{border-color:var(--accent);background:#1a3852}.area .name{flex:1;min-width:0;text-align:left;background:transparent;border:0;padding:7px 2px;overflow:hidden;text-overflow:ellipsis}.swatch{width:15px;height:15px;border-radius:4px;border:1px solid #ffffff6e;flex-shrink:0}.eye{min-width:37px}.field{margin:12px 0}.field .row{justify-content:space-between;margin-bottom:6px}.field label{color:#d7e5f2;font-size:12px}.field .value{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}.field input[type=range]{width:100%;accent-color:#52a7fe}.field input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--stroke);border-radius:8px;background:#111c29;color:var(--txt)}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.color-picker{width:100%;height:35px;background:#111c29;border:1px solid var(--stroke);border-radius:8px;padding:3px;cursor:pointer}.muted{font-size:12px;color:var(--sub)}.pill{font-size:11px;padding:3px 7px;border-radius:12px;background:#27445d;color:#bedfff}.tip{line-height:1.8;margin:0;padding-left:20px;color:var(--sub);font-size:12px}.status-ok{color:#76e0bb}.hidden{display:none!important}@media(max-width:900px){.layout{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 70px)}.board{height:55vh;flex:none}.sidebar{border-left:0;border-top:1px solid var(--stroke)}header h1{width:100%}.hints{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header>
+<h1>🗺️ GPR Multi-Area Mapper <span class="pill">v3.0 · Fixed controls</span></h1>
+<div class="toolbar">
+<button id="openBtn">📁 เปิดภาพ</button><input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" />
+<div class="sep"></div>
+<button id="selectMode" class="active" title="เลือกและแก้ไขพื้นที่ (V)">↖ เลือก/แก้ไข</button>
+<button id="drawMode" title="วาดพื้นที่ใหม่ (D)">✏ วาดพื้นที่</button>
+<button id="panMode" title="เลื่อนภาพ (H)">✋ เลื่อนภาพ</button>
+<div class="sep"></div>
+<button id="undoBtn" title="Ctrl+Z" disabled>↶ Undo</button><button id="redoBtn" title="Ctrl+Y / Ctrl+Shift+Z" disabled>↷ Redo</button>
+<button id="fitBtn">⤢ พอดีจอ</button>
+<div class="sep"></div><button id="exportBtn" class="green" disabled>💾 บันทึก PNG</button>
+</div>
+</header>
+<main class="layout">
+<div class="work">
+  <div class="hints"><span id="hintText">เปิดภาพก่อน แล้วเลือก “วาดพื้นที่” เพื่อเริ่มทำเครื่องหมาย</span><span id="zoomLabel">100%</span></div>
+  <div class="board" id="board"><canvas id="canvas" aria-label="พื้นที่วาดขอบเขต"></canvas><div id="empty" class="empty"><div style="font-size:37px">🛰️</div><b>เริ่มต้นจากภาพแผนที่</b><div style="margin-top:5px">กด “เปิดภาพ” เพื่อเลือกภาพ PNG, JPG หรือ WebP จากเครื่อง</div></div></div>
+  <div class="bottom"><div class="toolbar"><button id="finishBtn" class="primary" disabled>✓ ปิดรูปทรง</button><button id="undoPointBtn" disabled>↶ ย้อนจุดร่าง</button><button id="cancelDraftBtn" disabled>✕ ยกเลิกร่าง</button></div><span id="status">ยังไม่ได้เปิดภาพ</span><span>ล้อเมาส์: ซูม · Space+ลาก: เลื่อน · Esc: ยกเลิกร่าง</span></div>
+</div>
+<aside class="sidebar">
+ <section class="section">
+   <div class="row spaced"><h2>พื้นที่ที่วาด <span id="areaCount" class="pill">0</span></h2><button id="clearBtn" class="danger" disabled>ลบทั้งหมด</button></div>
+   <p>คลิกชื่อพื้นที่เพื่อเลือกแก้ไข · กดรูปตาเพื่อซ่อน/แสดง</p>
+   <div class="areas" id="areaList"><span class="muted">ยังไม่มีพื้นที่ที่วาด</span></div>
+ </section>
+ <section class="section">
+  <h2 id="propsTitle">รูปแบบสำหรับพื้นที่ใหม่</h2>
+  <div class="field"><label for="areaName">ชื่อพื้นที่</label><input id="areaName" type="text" placeholder="เช่น กม. 68+000 LT" maxlength="100" /></div>
+  <div class="two">
+   <div class="field"><label for="fillColor">สีพื้น</label><input id="fillColor" class="color-picker" type="color" value="#f04444" /></div>
+   <div class="field"><label for="strokeColor">สีเส้นขอบ</label><input id="strokeColor" class="color-picker" type="color" value="#d62828" /></div>
+  </div>
+  <div class="field"><div class="row"><label for="opacity">ความทึบสีพื้น</label><span id="opacityVal" class="value">38%</span></div><input id="opacity" type="range" min="0" max="100" value="38" step="1" /></div>
+  <div class="field"><div class="row"><label for="lineWidth">ความหนาเส้นขอบ (พิกเซลภาพ)</label><span id="lineWidthVal" class="value">4 px</span></div><input id="lineWidth" type="range" min="0" max="30" step="1" value="4" /></div>
+  <div class="field"><div class="row"><label for="smoothness">ความโค้งมน</label><span id="smoothnessVal" class="value">35%</span></div><input id="smoothness" type="range" min="0" max="100" step="1" value="35" /></div>
+  <div class="row" style="flex-wrap:wrap"><button id="insertMode" disabled>＋ เพิ่มจุดบนขอบ</button><button id="deleteVertex" disabled>－ ลบจุดที่เลือก</button><button id="deleteArea" class="danger" disabled>🗑 ลบพื้นที่</button></div>
+  <p id="editHint" style="margin-top:10px">ในโหมดเลือก ให้คลิกพื้นที่ก่อน จึงแก้ไขรูปทรงและสีได้</p>
+ </section>
+ <section class="section"><h2>วิธีใช้แบบย่อ</h2><ol class="tip"><li>กด <b>วาดพื้นที่</b> แล้วคลิกซ้ายอย่างน้อย 3 จุด</li><li>กดปุ่ม <b>✓ ปิดรูปทรง</b> หรือคลิกขวา/กด Enter แล้ววาดพื้นที่ต่อไปได้ทันที</li><li>ใช้ <b>เลือก/แก้ไข</b> คลิกพื้นที่แล้วลากพื้นที่ทั้งก้อน หรือลากจุดกลมเพื่อปรับขอบเขต</li><li>เพิ่มจุดด้วยปุ่ม <b>เพิ่มจุดบนขอบ</b> แล้วคลิกใกล้เส้นตรงระหว่างจุดหลัก; ลบจุดโดยเลือกจุดแล้วกด Delete</li><li>ปรับสี ความทึบ ความหนาเส้น และความโค้งของพื้นที่ที่เลือก</li><li>กด <b>บันทึก PNG</b> เพื่อส่งออกเฉพาะภาพแผนที่พร้อมพื้นที่ที่แสดง</li></ol><p>หมายเหตุ: เส้นโค้งมีไว้เพื่อความสวยงาม อาจไม่ตรงกับขอบเขตเชิงวิศวกรรมอย่างเคร่งครัด เลือกความโค้ง 0% เมื่อต้องการเส้นผ่านจุดแบบตรง</p></section>
+</aside>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const canvas=$('canvas'), ctx=canvas.getContext('2d'),board=$('board');
+const controls={name:$('areaName'),fill:$('fillColor'),stroke:$('strokeColor'),opacity:$('opacity'),width:$('lineWidth'),smooth:$('smoothness')};
+const DEFAULT_STYLE={fill:'#f04444',stroke:'#d62828',opacity:38,width:4,smooth:35};
+let defaults={...DEFAULT_STYLE};
+let image=null,imageUrl=null,areas=[],selectedId=null,selectedVertex=-1,draft=[],mode='select',insertMode=false;
+let nextId=1,scale=1,offsetX=0,offsetY=0,cw=0,ch=0,activeDrag=null,spaceHeld=false;
+const undoStack=[],redoStack=[],MAX_HISTORY=100;
+let propertyTxn=null;
+const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+const copy=o=>JSON.parse(JSON.stringify(o));
+const selected=()=>areas.find(a=>a.id===selectedId)||null;
+const snapshot=()=>JSON.stringify({areas,selectedId,selectedVertex,defaults,nextId,draft,mode});
+function restore(s){const d=JSON.parse(s);areas=d.areas;selectedId=d.selectedId;selectedVertex=d.selectedVertex;defaults=d.defaults;nextId=d.nextId;draft=d.draft||[];mode=d.mode||'select';insertMode=false;propertyTxn=null;for(const id of ['selectMode','drawMode','panMode'])$(id).classList.toggle('active',id===mode+'Mode');board.style.cursor=mode==='draw'?'crosshair':mode==='pan'?'grab':'default';sync();}
+function pushUndo(before){if(before===snapshot())return false;undoStack.push(before);if(undoStack.length>MAX_HISTORY)undoStack.shift();redoStack.length=0;updateButtons();return true;}
+function execute(action){finalizeProperty();const before=snapshot();action();pushUndo(before);sync();}
+function undo(){finalizeProperty();if(!undoStack.length)return;const current=snapshot();redoStack.push(current);restore(undoStack.pop());updateButtons();}
+function redo(){finalizeProperty();if(!redoStack.length)return;const current=snapshot();undoStack.push(current);restore(redoStack.pop());updateButtons();}
+function setStatus(str){$('status').textContent=str;}
+function resizeCanvas(){const r=board.getBoundingClientRect();cw=Math.max(1,r.width);ch=Math.max(1,r.height);const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(cw*dpr);canvas.height=Math.round(ch*dpr);canvas.style.width=cw+'px';canvas.style.height=ch+'px';ctx.setTransform(dpr,0,0,dpr,0,0);render();}
+function fitImage(){if(!image)return;scale=Math.min(cw/image.width,ch/image.height)*.94;offsetX=(cw-image.width*scale)/2;offsetY=(ch-image.height*scale)/2;render();}
+function posFromEvent(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function imagePoint(p){return{x:(p.x-offsetX)/scale,y:(p.y-offsetY)/scale};}
+function inImage(p){return image&&p.x>=0&&p.y>=0&&p.x<=image.width&&p.y<=image.height;}
+function screenPoint(p){return{x:p.x*scale+offsetX,y:p.y*scale+offsetY};}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function drawPath(c,points,smooth){if(!points.length)return;c.moveTo(points[0].x,points[0].y);if(points.length<3||smooth<=0){for(let i=1;i<points.length;i++)c.lineTo(points[i].x,points[i].y);c.closePath();return;}
+ const k=clamp(smooth/100,0,1)/6,n=points.length;
+ for(let i=0;i<n;i++){const p0=points[(i-1+n)%n],p1=points[i],p2=points[(i+1)%n],p3=points[(i+2)%n];
+ const len=dist(p1,p2),len1=Math.max(.00001,dist(p0,p2)),len2=Math.max(.00001,dist(p1,p3));
+ // จำกัดความยาวเส้นสัมผัสเพื่อลดการล้ำออกนอกขอบบริเวณมุมแหลม
+ const t1=Math.min(len/2,k*len*2/len1),t2=Math.min(len/2,k*len*2/len2);
+ c.bezierCurveTo(p1.x+(p2.x-p0.x)*t1,p1.y+(p2.y-p0.y)*t1,p2.x-(p3.x-p1.x)*t2,p2.y-(p3.y-p1.y)*t2,p2.x,p2.y);
+ }c.closePath();}
+function rgba(hex,opacity){const m=/^#([0-9a-f]{6})$/i.exec(hex);if(!m)return `rgba(255,0,0,${opacity/100})`;const h=m[1];return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${opacity/100})`;}
+function drawArea(c,a,showSelection=false){if(!a.visible||a.points.length<3)return;c.save();c.beginPath();drawPath(c,a.points,a.smooth);c.fillStyle=rgba(a.fill,a.opacity);c.fill();if(a.width>0){c.strokeStyle=a.stroke;c.lineWidth=a.width;c.lineJoin='round';c.stroke();}c.restore();if(showSelection){c.save();c.lineWidth=1.3/scale;c.strokeStyle='#7ec8ff';c.setLineDash([6/scale,4/scale]);c.beginPath();drawPath(c,a.points,a.smooth);c.stroke();c.setLineDash([]);a.points.forEach((p,i)=>{c.beginPath();c.arc(p.x,(p.y), (i===selectedVertex?7:5.5)/scale,0,Math.PI*2);c.fillStyle=i===selectedVertex?'#ffdc70':'#fff';c.fill();c.lineWidth=2/scale;c.strokeStyle='#187ccf';c.stroke();});c.restore();}}
+function render(){if(!cw||!ch)return;ctx.clearRect(0,0,cw,ch);ctx.fillStyle='#111b27';ctx.fillRect(0,0,cw,ch);if(!image){$('zoomLabel').textContent='—';return;}
+ ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);ctx.drawImage(image,0,0);
+ for(const a of areas)drawArea(ctx,a,a.id===selectedId&&mode==='select');
+ if(draft.length){ctx.save();ctx.lineWidth=2/scale;ctx.strokeStyle='#ffe78b';ctx.setLineDash([7/scale,5/scale]);ctx.beginPath();ctx.moveTo(draft[0].x,draft[0].y);for(const p of draft.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke();ctx.setLineDash([]);draft.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,4.8/scale,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#df9b2a';ctx.stroke();});ctx.restore();}
+ ctx.restore();$('zoomLabel').textContent=Math.round(scale*100)+'%';}
+function updateButtons(){const a=selected();$('undoBtn').disabled=!undoStack.length;$('redoBtn').disabled=!redoStack.length;$('exportBtn').disabled=!image;$('clearBtn').disabled=!areas.length;$('deleteArea').disabled=!a;$('insertMode').disabled=!a||mode!=='select';$('deleteVertex').disabled=!a||selectedVertex<0||a.points.length<=3||mode!=='select';$('insertMode').classList.toggle('active',insertMode);$('finishBtn').disabled=!image||draft.length<3;$('undoPointBtn').disabled=!draft.length;$('cancelDraftBtn').disabled=!draft.length;}
+function refreshList(){const list=$('areaList');list.replaceChildren();$('areaCount').textContent=areas.length;if(!areas.length){const m=document.createElement('span');m.className='muted';m.textContent='ยังไม่มีพื้นที่ที่วาด';list.append(m);return;}
+ for(const a of [...areas].reverse()){
+  const item=document.createElement('div');item.className='area'+(a.id===selectedId?' selected':'');
+  const sw=document.createElement('div');sw.className='swatch';sw.style.background=a.fill;
+  const btn=document.createElement('button');btn.className='name';btn.textContent=a.name;btn.title='เลือก '+a.name;btn.onclick=()=>{selectedId=a.id;selectedVertex=-1;insertMode=false;switchMode('select');sync();};
+  const eye=document.createElement('button');eye.className='icon eye';eye.textContent=a.visible?'👁':'◌';eye.title=a.visible?'ซ่อนพื้นที่':'แสดงพื้นที่';eye.onclick=()=>execute(()=>{a.visible=!a.visible;if(!a.visible&&selectedId===a.id){selectedId=null;selectedVertex=-1;insertMode=false;}});
+  item.append(sw,btn,eye);list.append(item);
+ }
+}
+function syncControls(){const a=selected(),v=a||defaults;$('propsTitle').textContent=a?'ปรับแต่ง: '+a.name:'รูปแบบสำหรับพื้นที่ใหม่';controls.name.value=a?a.name:'';controls.name.disabled=!a;controls.fill.value=v.fill;controls.stroke.value=v.stroke;controls.opacity.value=v.opacity;controls.width.value=v.width;controls.smooth.value=v.smooth;$('opacityVal').textContent=v.opacity+'%';$('lineWidthVal').textContent=v.width+' px';$('smoothnessVal').textContent=v.smooth+'%';$('editHint').textContent=a?'ลากจุดสีขาวเพื่อแก้ขอบเขต · คลิกจุดแล้วกด Delete เพื่อลบ':'ค่าที่ตั้งไว้นี้จะใช้กับพื้นที่ใหม่ที่วาดต่อไป';}
+function sync(){refreshList();syncControls();updateButtons();render();}
+function switchMode(newMode){finalizeProperty();if(newMode==='draw'){selectedId=null;selectedVertex=-1;}mode=newMode;insertMode=false;for(const id of ['selectMode','drawMode','panMode'])$(id).classList.toggle('active',id===newMode+'Mode');$('hintText').textContent=!image?'เปิดภาพเพื่อเริ่มทำเครื่องหมาย':mode==='draw'?'คลิกซ้ายเพื่อวางจุดอย่างน้อย 3 จุด · ใช้ปุ่ม ✓ ปิดรูปทรง เมื่อเสร็จ':mode==='pan'?'ลากเมาส์เพื่อเลื่อนภาพ · ใช้ล้อเมาส์ซูมเข้าออก':'คลิกพื้นที่เพื่อเลือก · ลากภายในเพื่อย้ายพื้นที่ · ลากจุดเพื่อเปลี่ยนขอบ';board.style.cursor=mode==='draw'?'crosshair':mode==='pan'?'grab':'default';refreshList();syncControls();updateButtons();render();}
+function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;if(l<1e-8)return{distance:dist(p,a),t:0};let t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1);return{distance:dist(p,{x:a.x+t*dx,y:a.y+t*dy}),t};}
+function nearestVertex(p){let best=null,bestD=11/scale;for(let z=areas.length-1;z>=0;z--){const a=areas[z];if(!a.visible)continue;for(let i=0;i<a.points.length;i++){const d=dist(p,a.points[i]);if(d<bestD){bestD=d;best={id:a.id,index:i};}}}return best;}
+function pointInsidePolygon(p,points){let hit=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)hit=!hit;}return hit;}
+function hitArea(p){for(let k=areas.length-1;k>=0;k--){const a=areas[k];if(!a.visible)continue;const path=new Path2D();drawPath(path,a.points,a.smooth);if(ctx.isPointInPath(path,p.x,p.y))return a.id;
+ // ตรวจบริเวณเส้นควบคุมเพื่อให้เลือกพื้นที่ขนาดเล็กได้ง่าย
+ for(let i=0;i<a.points.length;i++)if(segmentDistance(p,a.points[i],a.points[(i+1)%a.points.length]).distance<7/scale)return a.id;
+ }return null;}
+function nearestSegment(p,area,maxScreenDistance=15){let result=null,best=maxScreenDistance/scale;for(let i=0;i<area.points.length;i++){const d=segmentDistance(p,area.points[i],area.points[(i+1)%area.points.length]);if(d.distance<best){best=d.distance;result={index:i,t:d.t};}}return result;}
+function finishPolygon(){if(draft.length<3){setStatus('ต้องมีอย่างน้อย 3 จุด จึงปิดรูปทรงได้');return;}execute(()=>{const points=copy(draft);draft=[];const id=nextId++;areas.push({...defaults,id,name:'พื้นที่ '+String(id).padStart(2,'0'),visible:true,points});selectedId=null;selectedVertex=-1;});setStatus('เพิ่มพื้นที่สำเร็จ · สามารถวาดพื้นที่ต่อไปได้');switchMode('draw');}
+function deleteVertex(){const a=selected();if(!a||selectedVertex<0||a.points.length<=3)return;execute(()=>{a.points.splice(selectedVertex,1);selectedVertex=-1;});setStatus('ลบจุดแล้ว');}
+function addVertexAt(p){const a=selected();if(!a)return;const hit=nearestSegment(p,a);if(!hit){setStatus('คลิกใกล้เส้นเชื่อมระหว่างจุดหลักของพื้นที่ที่เลือก');return;}
+ execute(()=>{const q=a.points[hit.index],r=a.points[(hit.index+1)%a.points.length];a.points.splice(hit.index+1,0,{x:q.x+(r.x-q.x)*hit.t,y:q.y+(r.y-q.y)*hit.t});selectedVertex=hit.index+1;insertMode=false;});setStatus('เพิ่มจุดแล้ว · ลากจุดใหม่เพื่อจัดตำแหน่ง');}
+function pointerDown(e){if(!image)return;if(e.button===2){if(mode==='draw'){e.preventDefault();finishPolygon();}return;}if(e.button!==0&&e.button!==1)return;
+ finalizeProperty();const p=posFromEvent(e),ip=imagePoint(p);if(e.button===1||spaceHeld||mode==='pan'){activeDrag={type:'pan',x:p.x,y:p.y,startX:offsetX,startY:offsetY};canvas.setPointerCapture(e.pointerId);board.style.cursor='grabbing';e.preventDefault();return;}
+ if(mode==='draw'){if(inImage(ip)){execute(()=>{draft.push({x:clamp(ip.x,0,image.width),y:clamp(ip.y,0,image.height)});});setStatus(`กำลังวาด: ${draft.length} จุด · กดปุ่มปิดรูปทรง หรือคลิกขวา`);}return;}
+ if(mode!=='select')return;
+ if(insertMode){addVertexAt(ip);return;}
+ const hitV=nearestVertex(ip);if(hitV){selectedId=hitV.id;selectedVertex=hitV.index;activeDrag={type:'vertex',id:hitV.id,index:hitV.index,before:snapshot(),changed:false};canvas.setPointerCapture(e.pointerId);sync();return;}
+ const id=hitArea(ip);selectedId=id;selectedVertex=-1;if(id){const a=selected();activeDrag={type:'area',id,before:snapshot(),origin:ip,original:copy(a.points),changed:false};canvas.setPointerCapture(e.pointerId);}sync();
+}
+function pointerMove(e){if(!activeDrag)return;const p=posFromEvent(e);
+ if(activeDrag.type==='pan'){offsetX=activeDrag.startX+(p.x-activeDrag.x);offsetY=activeDrag.startY+(p.y-activeDrag.y);render();return;}
+ if(activeDrag.type==='area'){const a=areas.find(z=>z.id===activeDrag.id);if(!a)return;const ip=imagePoint(p),dx=ip.x-activeDrag.origin.x,dy=ip.y-activeDrag.origin.y;a.points=activeDrag.original.map(pt=>({x:clamp(pt.x+dx,0,image.width),y:clamp(pt.y+dy,0,image.height)}));activeDrag.changed=activeDrag.changed||Math.hypot(dx,dy)>.001;render();return;}
+ if(activeDrag.type==='vertex'){const a=areas.find(z=>z.id===activeDrag.id);if(!a)return;const ip=imagePoint(p),q=a.points[activeDrag.index];const nx=clamp(ip.x,0,image.width),ny=clamp(ip.y,0,image.height);if(Math.hypot(nx-q.x,ny-q.y)>.001){q.x=nx;q.y=ny;activeDrag.changed=true;render();}}
+}
+function pointerUp(e){if(!activeDrag)return;const d=activeDrag;activeDrag=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);board.style.cursor=mode==='draw'?'crosshair':mode==='pan'?'grab':'default';if((d.type==='vertex'||d.type==='area')&&d.changed){pushUndo(d.before);sync();setStatus(d.type==='area'?'เลื่อนพื้นที่แล้ว':'ปรับตำแหน่งจุดแล้ว');}}
+canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('pointerup',pointerUp);canvas.addEventListener('pointercancel',pointerUp);
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('dblclick',e=>{if(!image||mode!=='select'||!selected())return;e.preventDefault();addVertexAt(imagePoint(posFromEvent(e)));});
+canvas.addEventListener('wheel',e=>{if(!image)return;e.preventDefault();const p=posFromEvent(e),before=imagePoint(p);const factor=Math.exp(-e.deltaY*.0013),min=Math.min(cw/image.width,ch/image.height)*.05;scale=clamp(scale*factor,min,20);offsetX=p.x-before.x*scale;offsetY=p.y-before.y*scale;render();},{passive:false});
+function finalizeProperty(){if(!propertyTxn)return;pushUndo(propertyTxn);propertyTxn=null;updateButtons();}
+function changeProperty(key,val){if(!propertyTxn)propertyTxn=snapshot();const a=selected();if(a)a[key]=val;else defaults[key]=val;syncControls();render();}
+for(const [key,el]of Object.entries({fill:controls.fill,stroke:controls.stroke,opacity:controls.opacity,width:controls.width,smooth:controls.smooth})){
+ el.addEventListener('input',()=>changeProperty(key,['opacity','width','smooth'].includes(key)?Number(el.value):el.value));
+ el.addEventListener('change',()=>{changeProperty(key,['opacity','width','smooth'].includes(key)?Number(el.value):el.value);finalizeProperty();});
+ el.addEventListener('blur',finalizeProperty);
+}
+controls.name.addEventListener('change',()=>{const a=selected();if(!a)return;const v=controls.name.value.trim()||a.name;if(v===a.name)return;execute(()=>{a.name=v;});});
+$('openBtn').onclick=()=>$('fileInput').click();
+$('fileInput').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!file.type.startsWith('image/')){alert('กรุณาเลือกไฟล์ภาพ PNG, JPG หรือ WebP');return;}
+ if(image&&(areas.length||draft.length)&&!confirm('การเปิดภาพใหม่จะลบพื้นที่ที่วาดอยู่ ต้องการดำเนินการต่อหรือไม่?'))return;const url=URL.createObjectURL(file);const im=new Image();im.onload=()=>{if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=url;image=im;areas=[];selectedId=null;selectedVertex=-1;draft=[];nextId=1;defaults={...DEFAULT_STYLE};undoStack.length=0;redoStack.length=0;propertyTxn=null;activeDrag=null;$('empty').classList.add('hidden');fitImage();switchMode('draw');sync();setStatus(`เปิดภาพ ${file.name} · ${im.width.toLocaleString()} × ${im.height.toLocaleString()} px`);};im.onerror=()=>{URL.revokeObjectURL(url);alert('ไม่สามารถเปิดไฟล์ภาพนี้ได้');};im.src=url;});
+$('selectMode').onclick=()=>switchMode('select');$('drawMode').onclick=()=>switchMode('draw');$('panMode').onclick=()=>switchMode('pan');
+$('undoBtn').onclick=undo;$('redoBtn').onclick=redo;$('fitBtn').onclick=fitImage;
+$('finishBtn').onclick=finishPolygon;
+$('undoPointBtn').onclick=()=>{if(!draft.length)return;execute(()=>{draft.pop();});setStatus('ย้อนจุดร่างล่าสุดแล้ว');};
+$('cancelDraftBtn').onclick=()=>{if(!draft.length)return;execute(()=>{draft=[];});setStatus('ยกเลิกร่างแล้ว');};
+$('insertMode').onclick=()=>{if(!selected())return;insertMode=!insertMode;updateButtons();board.style.cursor=insertMode?'crosshair':'default';setStatus(insertMode?'คลิกบนเส้นตรงระหว่างจุดหลัก เพื่อแทรกจุดใหม่':'ยกเลิกโหมดเพิ่มจุด');};
+$('deleteVertex').onclick=deleteVertex;
+$('deleteArea').onclick=()=>{const a=selected();if(!a)return;execute(()=>{areas=areas.filter(v=>v.id!==a.id);selectedId=null;selectedVertex=-1;insertMode=false;});setStatus('ลบพื้นที่แล้ว');};
+$('clearBtn').onclick=()=>{if(!areas.length)return;if(!confirm('ต้องการลบพื้นที่ที่วาดทั้งหมดหรือไม่? สามารถกด Undo เพื่อย้อนกลับได้'))return;execute(()=>{areas=[];selectedId=null;selectedVertex=-1;draft=[];insertMode=false;});setStatus('ลบพื้นที่ทั้งหมดแล้ว');};
+$('exportBtn').onclick=()=>{if(!image)return;if(draft.length&& !confirm('มีรูปทรงที่ยังวาดไม่เสร็จ ซึ่งจะไม่ถูกส่งออก ต้องการบันทึกภาพต่อหรือไม่?'))return;
+ try{const out=document.createElement('canvas');out.width=image.naturalWidth;out.height=image.naturalHeight;const g=out.getContext('2d');g.drawImage(image,0,0);for(const a of areas)drawArea(g,a,false);out.toBlob(blob=>{if(!blob){alert('ไม่สามารถสร้างไฟล์ PNG ได้');return;}const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='GPR_Map_Highlight.png';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);setStatus(`บันทึก PNG ขนาด ${out.width} × ${out.height} px แล้ว`);},'image/png');}catch(err){alert('บันทึกภาพไม่สำเร็จ: '+err.message);}
+};
+window.addEventListener('keydown',e=>{const editing=['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);if(e.code==='Space'&&!editing){spaceHeld=true;if(!activeDrag)board.style.cursor='grab';e.preventDefault();}
+ if((e.ctrlKey||e.metaKey)&&!e.altKey&&!editing&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
+ if((e.ctrlKey||e.metaKey)&&!e.altKey&&!editing&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
+ if(editing)return;
+ if(e.key==='Escape'){if(draft.length){execute(()=>{draft=[];});setStatus('ยกเลิกการวาดรูปทรงที่ยังไม่ปิด');}else{insertMode=false;selectedVertex=-1;updateButtons();render();}return;}
+ if(e.key==='Enter'&&mode==='draw'&&draft.length){finishPolygon();return;}
+ if((e.key==='Delete'||e.key==='Backspace')&&mode==='select'){if(selectedVertex>=0)deleteVertex();else if(selected())$('deleteArea').click();e.preventDefault();return;}
+ if(!e.ctrlKey&&!e.metaKey&&!e.altKey){if(e.key.toLowerCase()==='v')switchMode('select');if(e.key.toLowerCase()==='d')switchMode('draw');if(e.key.toLowerCase()==='h')switchMode('pan');}
+});
+window.addEventListener('keyup',e=>{if(e.code==='Space'){spaceHeld=false;if(!activeDrag)board.style.cursor=mode==='pan'?'grab':mode==='draw'?'crosshair':'default';}});
+window.addEventListener('blur',()=>{spaceHeld=false;});
+new ResizeObserver(()=>{const oldW=cw,oldH=ch;resizeCanvas();if(image&&oldW&&oldH){offsetX+=(cw-oldW)/2;offsetY+=(ch-oldH)/2;render();}}).observe(board);
+resizeCanvas();sync();switchMode('select');
+})();
+</script>
+</body>
+</html>
